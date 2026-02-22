@@ -1,0 +1,5 @@
+.claude/
+.git/
+.gitignore
+tsconfig.json
+README.md

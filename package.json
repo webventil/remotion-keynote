@@ -1,13 +1,13 @@
 {
   "name": "remotion-keynote",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Remotion-based keynote presentation player with slide navigation, thumbnails, and keyboard controls",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/arne/remotion-keynote"
+    "url": "https://github.com/webventil/remotion-keynote"
   },
   "keywords": [
     "remotion",
