@@ -2,9 +2,17 @@ import React from "react";
 import { AbsoluteFill } from "remotion";
 import { linearTiming, TransitionSeries } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
-import type { PresentationProps, SlideConfig } from "./types";
+import type { AnySlideConfig, PresentationProps } from "./types";
+import { resolveSlideComponent } from "./slidesRegistry";
 
 export const DEFAULT_TRANSITION_DURATION = 15;
+
+function getSlideComponent(slide: AnySlideConfig): React.FC {
+	if ("component" in slide && slide.component) {
+		return slide.component;
+	}
+	return resolveSlideComponent(slide.id);
+}
 
 export const Presentation: React.FC<PresentationProps> = ({
 	slides = [],
@@ -14,12 +22,13 @@ export const Presentation: React.FC<PresentationProps> = ({
 		<AbsoluteFill>
 			<TransitionSeries>
 				{slides.flatMap((slide, i) => {
+					const SlideComponent = getSlideComponent(slide);
 					const elements: React.ReactNode[] = [
 						<TransitionSeries.Sequence
 							key={slide.id}
 							durationInFrames={slide.durationInFrames}
 						>
-							<slide.component />
+							<SlideComponent />
 						</TransitionSeries.Sequence>,
 					];
 					if (i < slides.length - 1) {
@@ -41,7 +50,7 @@ export const Presentation: React.FC<PresentationProps> = ({
 };
 
 export function calculateTotalDuration(
-	slides: SlideConfig[],
+	slides: AnySlideConfig[],
 	transitionDuration: number = DEFAULT_TRANSITION_DURATION,
 ): number {
 	const sum = slides.reduce((acc, s) => acc + s.durationInFrames, 0);

@@ -1,5 +1,6 @@
 export { Presentation, calculateTotalDuration } from "./Presentation";
 export { PresentationPlayer } from "./PresentationPlayer";
+export { PresentationApp } from "./PresentationApp";
 export { SlideOverlay } from "./SlideOverlay";
 export { SlideThumbnails } from "./SlideThumbnails";
 export {
@@ -12,4 +13,10 @@ export {
 	useKeynoteTheme,
 } from "./theme";
 export type { KeynoteTheme } from "./theme";
-export type { SlideConfig, PresentationProps } from "./types";
+export { registerSlides } from "./slidesRegistry";
+export type {
+	SlideConfig,
+	SerializableSlideConfig,
+	AnySlideConfig,
+	PresentationProps,
+} from "./types";

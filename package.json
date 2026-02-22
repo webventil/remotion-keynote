@@ -1,6 +1,6 @@
 {
   "name": "remotion-keynote",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A Remotion-based keynote presentation player with slide navigation, thumbnails, and keyboard controls",
   "main": "src/index.ts",
   "types": "src/index.ts",

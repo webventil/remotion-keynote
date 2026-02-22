@@ -52,26 +52,125 @@ export const App = () => (
 );
 ```
 
-### Remotion composition (for rendering)
+### Remotion composition (for rendering to video)
+
+Remotion's `Composition` serializes `defaultProps` with `JSON.stringify`, which silently drops `component` (a function). Use `registerSlides` to store component references in a side-channel registry, then pass only the serializable fields as `defaultProps`.
+
+**1. Register slides and define the composition** (`src/Root.tsx`):
 
 ```tsx
 import { Composition } from "remotion";
-import { Presentation, calculateTotalDuration } from "remotion-keynote";
+import {
+  Presentation,
+  calculateTotalDuration,
+  registerSlides,
+} from "remotion-keynote";
+import type { SerializableSlideConfig } from "remotion-keynote";
 
-const duration = calculateTotalDuration(slides);
+// Full slide definitions — used only for registration
+const slides = [
+  { id: "intro", component: IntroSlide, durationInFrames: 150 },
+  { id: "main", component: MainSlide, durationInFrames: 200 },
+  { id: "outro", component: OutroSlide, durationInFrames: 120 },
+];
+
+// Populate the registry (must run before Presentation renders)
+registerSlides(slides);
+
+// Serializable subset — safe for defaultProps
+const serializableSlides: SerializableSlideConfig[] = slides.map(
+  ({ id, durationInFrames }) => ({ id, durationInFrames }),
+);
 
 export const Root = () => (
   <Composition
     id="MyPresentation"
     component={Presentation}
-    defaultProps={{ slides }}
-    durationInFrames={duration}
+    defaultProps={{ slides: serializableSlides }}
+    durationInFrames={calculateTotalDuration(serializableSlides)}
     fps={30}
     width={1280}
     height={720}
   />
 );
 ```
+
+**2. Register the root** (`src/index.ts`):
+
+```tsx
+import { registerRoot } from "remotion";
+import { Root } from "./Root";
+
+registerRoot(Root);
+```
+
+**3. Render from the CLI:**
+
+```bash
+npx remotion render src/index.ts MyPresentation out/presentation.mp4
+```
+
+> **Note:** `PresentationPlayer` calls `registerSlides` automatically, so the interactive browser path needs no changes.
+
+### Adding a presentation target (Vite)
+
+You can add a lightweight Vite entry point alongside your Remotion project to launch the interactive player in the browser. `PresentationApp` provides a full-page dark layout with keyboard hints out of the box.
+
+**1. Create a `present/` directory** with two files:
+
+`present/index.html`:
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Presentation</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>
+```
+
+`present/main.tsx`:
+```tsx
+import { createRoot } from "react-dom/client";
+import { PresentationApp } from "remotion-keynote";
+import type { SlideConfig } from "remotion-keynote";
+import { IntroSlide } from "../src/scenes/IntroSlide";
+import { MainSlide } from "../src/scenes/MainSlide";
+import { OutroSlide } from "../src/scenes/OutroSlide";
+
+const slides: SlideConfig[] = [
+  { id: "intro", component: IntroSlide, durationInFrames: 150 },
+  { id: "main", component: MainSlide, durationInFrames: 200 },
+  { id: "outro", component: OutroSlide, durationInFrames: 120 },
+];
+
+createRoot(document.getElementById("root")!).render(
+  <PresentationApp slides={slides} />,
+);
+```
+
+**2. Add a script to `package.json`:**
+
+```json
+{
+  "scripts": {
+    "present": "vite present"
+  }
+}
+```
+
+**3. Launch:**
+
+```bash
+npm run present
+```
+
+This opens the interactive player at `http://localhost:5173` with keyboard controls, thumbnails, and fade transitions — completely independent of Remotion Studio.
 
 ## Theming
 
@@ -103,7 +202,8 @@ All theme properties:
 
 ### Components
 
-- **`<PresentationPlayer>`** — Full interactive player with thumbnails and keyboard controls
+- **`<PresentationApp>`** — Full-page presentation with dark background, player, and keyboard hints
+- **`<PresentationPlayer>`** — Interactive player with thumbnails and keyboard controls (embed anywhere)
 - **`<Presentation>`** — Pure slide sequence (for Remotion rendering)
 - **`<SlideOverlay>`** — Progress bar and slide counter
 - **`<SlideThumbnails>`** — Clickable thumbnail strip
@@ -117,6 +217,7 @@ All theme properties:
 
 - **`calculateTotalDuration(slides, transitionDuration?)`** — Compute total frames accounting for transitions
 - **`computeSlideBoundaries(slides, transitionDuration)`** — Get pause/content frame indices
+- **`registerSlides(slides)`** — Store component references in a module-level registry for serialization-safe rendering
 
 ### Props: `PresentationPlayer`
 

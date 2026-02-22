@@ -11,6 +11,7 @@ import { SlideThumbnails } from "./SlideThumbnails";
 import { KeynoteThemeContext, defaultKeynoteTheme } from "./theme";
 import type { KeynoteTheme } from "./theme";
 import type { SlideConfig } from "./types";
+import { registerSlides } from "./slidesRegistry";
 
 interface PresentationPlayerProps {
 	slides: SlideConfig[];
@@ -29,6 +30,8 @@ export const PresentationPlayer: React.FC<PresentationPlayerProps> = ({
 	fps = 30,
 	theme: themeOverrides,
 }) => {
+	registerSlides(slides);
+
 	const playerRef = useRef<PlayerRef>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 
